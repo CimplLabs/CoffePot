@@ -1,4 +1,5 @@
-//http://allaboutee.com/2014/12/30/esp8266-and-arduino-webserver/
+// Sketch based on "How To Use the ESP8266 and Arduino as a Webserver":
+// http://allaboutee.com/2014/12/30/esp8266-and-arduino-webserver/
 
 #include <SoftwareSerial.h>
  
@@ -7,6 +8,8 @@
 SoftwareSerial esp8266(2,3); // make RX Arduino line is pin 2, make TX Arduino line is pin 3.
                              // This means that you need to connect the TX line from the esp to the Arduino's pin 2
                              // and the RX line from the esp to the Arduino's pin 3
+int testNumber = 200;
+
 void setup()
 {
   Serial.begin(9600);
@@ -36,11 +39,14 @@ void loop()
     if(esp8266.find("+IPD,"))
     {
      delay(1000);
+
+     testNumber += 10;
+     
  
      int connectionId = esp8266.read()-48; // subtract 48 because the read() function returns 
                                            // the ASCII decimal value and 0 (the first decimal number) starts at 48
      
-     String webpage = "<h1>Hello</h1>&lth2>World!</h2><button>LED1</button>";
+     String webpage = "<h1>Hello</h1><h2>World!</h2><button>LED1</button>";
  
      String cipSend = "AT+CIPSEND=";
      cipSend += connectionId;
@@ -61,6 +67,35 @@ void loop()
      
      sendData(cipSend,1000,DEBUG);
      sendData(webpage,1000,DEBUG);
+
+     // start more lines
+
+     webpage="<br><p style='color:#ff8800;'>Testing - but I cannot send more than 64 characters at a time, Arduino does not support, it has a very short memory</p>";
+     
+     cipSend = "AT+CIPSEND=";
+     cipSend += connectionId;
+     cipSend += ",";
+     cipSend +=webpage.length();
+     cipSend +="\r\n";
+     
+     sendData(cipSend,1000,DEBUG);
+     sendData(webpage,1000,DEBUG);
+
+    
+     webpage = "<br><p style='color:red'>My secret number is </p>";
+     webpage += testNumber;
+     webpage +="\r\n";
+     webpage += "<script>setTimeout(function(){window.location=window.location;},60000)</script>";
+     cipSend = "AT+CIPSEND=";
+     cipSend += connectionId;
+     cipSend += ",";
+     cipSend +=webpage.length();
+     cipSend +="\r\n";
+     
+     sendData(cipSend,1000,DEBUG);
+     sendData(webpage,1000,DEBUG);
+
+     // end
  
      String closeCommand = "AT+CIPCLOSE="; 
      closeCommand+=connectionId; // append connection id
